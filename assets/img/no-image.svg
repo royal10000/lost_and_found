@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-labelledby="title desc">
-  <title id="title">No image available</title>
-  <desc id="desc">A simple placeholder for reports without an uploaded image.</desc>
-  <rect width="640" height="420" fill="#f3f4f6"/>
-  <rect x="64" y="56" width="512" height="308" rx="28" fill="#ffffff" stroke="#d1d5db" stroke-width="4"/>
-  <circle cx="222" cy="166" r="42" fill="#d1d5db"/>
-  <path d="M112 312l132-120 82 76 58-52 124 96H112z" fill="#9ca3af"/>
-  <text x="320" y="382" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#4b5563">No image available</text>
-</svg>
