@@ -1,5 +1,5 @@
 <?php
-require_once("../configs/Database.php");
+require_once __DIR__ . "/../configs/Database.php";
 
 class CRUD extends Database
 {
