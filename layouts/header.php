@@ -1,3 +1,10 @@
+<?php
+require_once __DIR__ . "/../includes/session.php";
+$isLoggedIn = Session::isLoggedIn();
+$sessionUser = $_SESSION["user"] ?? [];
+$username = $sessionUser["username"] ?? "";
+$email = $sessionUser["email"] ?? "";
+?>
 
 <!doctype html>
 <html lang="en">
@@ -18,8 +25,8 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
             <div class="flex items-center justify-between h-20">
                 <!-- Logo -->
-                <a href="index.php" class="flex items-center gap-3">
-                    <div class="relative">
+                <a href="index.php" class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <div class="relative shrink-0">
                         <div
                             class="w-11 h-11 sm:w-12 sm:h-12 bg-black rounded-2xl rotate-6"></div>
 
@@ -41,18 +48,18 @@
                     </div>
 
                     <div>
-                        <h1 class="text-xl sm:text-2xl font-extrabold text-black">
+                        <h1 class="text-lg sm:text-2xl font-extrabold text-black whitespace-nowrap">
                             Lost<span class="text-gray-500">&</span>Found
                         </h1>
 
-                        <p class="text-[10px] sm:text-xs text-gray-500 -mt-1">
+                        <p class="hidden sm:block text-xs text-gray-500 -mt-1">
                             Community Recovery Platform
                         </p>
                     </div>
                 </a>
 
                 <!-- Desktop Menu -->
-                <nav class="hidden lg:flex items-center gap-8 font-medium">
+                <nav class="hidden xl:flex items-center gap-8 font-medium">
                     <a href="index.php" class="hover:text-gray-500 transition"> Home </a>
 
                     <a href="lost_page.php" class="hover:text-gray-500 transition">
@@ -68,120 +75,35 @@
 
                 <!-- Desktop Buttons -->
 
-                <div class="hidden lg:flex items-center gap-3">
-
-                
-                    <?php function isLoggedIn(){return false;}  if (!isLoggedIn()): ?>
-
-                        <a
-                            href="login.php"
-                            class="px-5 py-2.5 rounded-xl border border-black text-black hover:bg-gray-100 transition">
-                            Login
-                        </a>
-
-                    <?php else: ?>
-
-                        <?php
-                        // $user = currentUser();
-                        // $profileStmt = $pdo->prepare("SELECT profile_image FROM users WHERE id = ? LIMIT 1");
-                        // $profileStmt->execute([$user['id']]);
-                        // $profileImage = $profileStmt->fetchColumn();
-                        ?>
-
-                        <div class="relative group ">
-
-                            <!-- Avatar Button -->
-                            <button
-                                class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 transition">
-
-                                <!-- Avatar -->
-                                <img
-                                    src="<?= htmlspecialchars(profileImageSrc($profileImage)) ?>"
-                                    alt="<?= htmlspecialchars($user['username']) ?>"
-                                    class="w-10 h-10 rounded-full object-cover bg-black">
-
-                                <!-- Username -->
-                                <div class="text-left leading-tight">
-                                    <p class="text-sm font-semibold">
-                                        username
-                                    </p>
-
-                                    <p class="text-xs text-gray-500">
-                                        email
-                                    </p>
-                                </div>
-
-                                <!-- Arrow -->
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="w-4 h-4 text-gray-500"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor">
-
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M19 9l-7 7-7-7" />
-                                </svg>
-
+                <div class="hidden xl:flex items-center gap-3">
+                    <?php if ($isLoggedIn): ?>
+                        <div class="relative group">
+                            <button type="button" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 transition">
+                                <span class="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center font-semibold"><?= htmlspecialchars(strtoupper(substr($username, 0, 1)), ENT_QUOTES, 'UTF-8') ?></span>
+                                <span class="text-left leading-tight">
+                                    <span class="block text-sm font-semibold"><?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?></span>
+                                    <span class="block text-xs text-gray-500"><?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?></span>
+                                </span>
                             </button>
-
-                            <!-- Dropdown -->
-                            <div
-                                class="absolute right-0 top-full  w-52 bg-white border rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
-
-                                <!-- User Info -->
+                            <div class="absolute right-0 top-full w-52 bg-white border rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
                                 <div class="p-4 border-b leading-tight">
-
-                                    <p class="font-semibold">
-                                     lkfd
-                                    </p>
-
-                                    <p class="text-sm text-gray-500 break-all mt-1">
-                                        dsa
-                                    </p>
-
+                                    <p class="font-semibold"><?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?></p>
+                                    <p class="text-sm text-gray-500 break-all mt-1"><?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?></p>
                                 </div>
-
-                                <!-- Menu -->
                                 <div class="p-2">
-
-                                    <a
-                                        href="profile.php"
-                                        class="block px-4 py-3 rounded-xl hover:bg-gray-100 transition">
-                                        Profile
-                                    </a>
-                                    <a
-                                        href="reported_item.php"
-                                        class="block px-4 py-3 rounded-xl hover:bg-gray-100 transition">
-                                        Reported Item
-                                    </a>
-
-                                    <a
-                                        href="logout.php"
-                                        class="block px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition">
-                                        Logout
-                                    </a>
-
+                                    <a href="profile.php" class="block px-4 py-3 rounded-xl hover:bg-gray-100 transition">Profile</a>
+                                    <a href="reported_item.php" class="block px-4 py-3 rounded-xl hover:bg-gray-100 transition">Reported Items</a>
+                                    <a href="logout.php" class="block px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition">Logout</a>
                                 </div>
-
                             </div>
-
                         </div>
-
+                    <?php else: ?>
+                        <a href="login.php" class="px-5 py-2.5 rounded-xl border border-black text-black hover:bg-gray-100 transition">Login</a>
                     <?php endif; ?>
-
-                    <a
-                        href="report.php"
-                        class="px-5 py-2.5 rounded-xl bg-black text-white hover:bg-gray-800 transition">
-                        Report Item
-                    </a>
-
+                    <a href="report.php" class="px-5 py-2.5 rounded-xl bg-black text-white hover:bg-gray-800 transition">Report Item</a>
                 </div>
-
                 <!-- Mobile Button -->
-                <button id="menuBtn" class="lg:hidden">
+                <button id="menuBtn" type="button" aria-label="Open navigation menu" aria-controls="mobileMenu" aria-expanded="false" class="xl:hidden shrink-0 p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-black">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         class="w-8 h-8"
@@ -198,8 +120,7 @@
             </div>
 
             <!-- Mobile Menu -->
-            <!-- Mobile Menu -->
-            <div id="mobileMenu" class="hidden lg:hidden pb-6">
+            <div id="mobileMenu" class="hidden xl:hidden pb-6 max-h-[calc(100vh-5rem)] overflow-y-auto">
 
                 <div class="flex flex-col gap-2 border-t pt-4 font-medium">
 
@@ -224,7 +145,7 @@
                         Contact
                     </a>
 
-                    <?php if (!isLoggedIn()): ?>
+                    <?php if (!$isLoggedIn): ?>
 
                         <!-- Login Button -->
                         <a href="login.php"
@@ -233,13 +154,6 @@
                         </a>
 
                     <?php else: ?>
-
-                        <?php
-                        $user = currentUser();
-                        $profileStmt = $pdo->prepare("SELECT profile_image FROM users WHERE id = ? LIMIT 1");
-                        $profileStmt->execute([$user['id']]);
-                        $profileImage = $profileStmt->fetchColumn();
-                        ?>
 
                         <!-- User Info -->
 
@@ -262,20 +176,17 @@
                         <div class="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-2xl mt-2">
 
                             <!-- Avatar -->
-                            <img
-                                src="<?= htmlspecialchars(profileImageSrc($profileImage)) ?>"
-                                alt="<?= htmlspecialchars($user['username']) ?>"
-                                class="w-11 h-11 rounded-full object-cover bg-black">
+                            <span class="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center font-semibold"><?= htmlspecialchars(strtoupper(substr($username, 0, 1)), ENT_QUOTES, 'UTF-8') ?></span>
 
                             <!-- User Details -->
                             <div class="leading-tight overflow-hidden">
 
                                 <p class="font-semibold text-sm">
-                                    <?= htmlspecialchars($user['username']) ?>
+                                    <?= htmlspecialchars($username) ?>
                                 </p>
 
                                 <p class="text-xs text-gray-500 truncate">
-                                    <?= htmlspecialchars($user['email']) ?>
+                                    <?= htmlspecialchars($email) ?>
                                 </p>
 
                             </div>
