@@ -29,7 +29,7 @@ class CRUD extends Database
         foreach ($data as $column => $value) {
             $set[] = "$column=:$column";
         }
-        $sql = "UPDATE $table SET " . implode(",", $set) . "WHERE id=:id";
+        $sql = "UPDATE $table SET " .implode(",", $set) . " WHERE id=:id";
         $stmt = $this->conn->prepare($sql);
         $data['id'] = $id;
         return $stmt->execute($data);
@@ -40,4 +40,9 @@ class CRUD extends Database
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute(['id' => $id]);
     }
+
+    public function lastInsertId(): string
+{
+    return $this->conn->lastInsertId();
+}
 }
