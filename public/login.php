@@ -2,10 +2,10 @@
 require_once __DIR__ . "/../class/user.php";
 require_once __DIR__."/../includes/session.php";
 
-// if (Session::isLoggedIn()) {
-//     header("Location: index.php");
-//     exit;
-// }
+if (Session::isLoggedIn()) {
+    header("Location: index.php");
+    exit;
+}
 
 $errors = [];
 $email = '';

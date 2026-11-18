@@ -13,7 +13,7 @@ class User extends CRUD
             [$email],
             true
         );
-        if ($user) {
+        if ($user) { 
             throw new Exception("User already exists");
         }
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
