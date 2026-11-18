@@ -1,6 +1,7 @@
 <?php
 
-require_once __DIR__ . '/../class/CRUD.php';
+require_once __DIR__ . '/../class/crud.php';
+require_once __DIR__ . '/../configs/configs.php';
 
 class ImageService
 {
@@ -33,8 +34,8 @@ class ImageService
         }
 
         // Create upload directory
-        if (!is_dir(IMAGE_UPLOAD_DIR)) {
-            mkdir(IMAGE_UPLOAD_DIR, 0755, true);
+        if (!is_dir(IMAGE_UPLOAD_DIR) && !mkdir(IMAGE_UPLOAD_DIR, 0755, true) && !is_dir(IMAGE_UPLOAD_DIR)) {
+            throw new Exception("Could not create the image upload directory.");
         }
 
         // Get extension from MIME type

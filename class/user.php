@@ -44,7 +44,6 @@ class User extends CRUD
         }
 
         Session::login($user);
-        return true;
     }
     public function getUser($id)
     {

@@ -1,56 +1,23 @@
 <?php
 require_once __DIR__ . "/../includes/session.php";
+require_once __DIR__ . "/../class/report.php";
 
-/** Accept only a real YYYY-MM-DD date from the last two calendar months through today. */
-function isValidReportDate(string $date): bool
-{
-    $parsedDate = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
-    $dateErrors = DateTimeImmutable::getLastErrors();
-
-    if (!$parsedDate || ($dateErrors !== false && ($dateErrors['warning_count'] > 0 || $dateErrors['error_count'] > 0)) || $parsedDate->format('Y-m-d') !== $date) {
-        return false;   
-    }
-
-    $today = new DateTimeImmutable('today');
-    $earliestDate = $today->modify('-2 months');
-
-    return $parsedDate >= $earliestDate && $parsedDate <= $today;
+$report = new Report();
+$isLoggedIn = Session::isLoggedIn();
+if (!$isLoggedIn) {
+    header("Location: index.php");
+    exit();
 }
 
 $errors = [];
-$today = new DateTimeImmutable('today');
-$minimumReportDate = $today->modify('-2 months')->format('Y-m-d');
-$maximumReportDate = $today->format('Y-m-d');
+$dateBounds = $report->getDateBounds();
+$categories = $report->getCategories();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $reportType = trim($_POST['report_type'] ?? '');
-    $title = trim($_POST['title'] ?? '');
-    $category = trim($_POST['category'] ?? '');
-    $description = trim($_POST['description'] ?? '');
-    $location = trim($_POST['location'] ?? '');
-    $date = trim($_POST['date'] ?? '');
-    $contact = trim($_POST['contact'] ?? '');
-
-    if (!in_array($reportType, ['lost', 'found'], true)) {
-        $errors['report_type'] = 'Please select Lost Item or Found Item.';
-    }
-    if ($title === '') {
-        $errors['title'] = 'Please enter an item title.';
-    }
-    if ($category === '' || !ctype_digit($category)) {
-        $errors['category'] = 'Please select a category.';
-    }
-    if ($description === '') {
-        $errors['description'] = 'Please enter a description.';
-    }
-    if ($location === '') {
-        $errors['location'] = 'Please enter a location.';
-    }
-    if (!isValidReportDate($date)) {
-        $errors['date'] = 'Choose a valid date from the last two months through today.';
-    }
-    if ($contact === '') {
-        $errors['contact'] = 'Please enter contact information.';
+    $errors = $report->createReport($_POST, $_FILES['image'] ?? [], (int) ($_SESSION['user']['user_id'] ?? 0));
+    if (!$errors) {
+        header('Location: report.php?report=submitted');
+        exit;
     }
 }
 
@@ -75,6 +42,21 @@ require_once __DIR__ . "/../layouts/header.php";
 
         <!-- Form -->
         <div class="p-8">
+
+            <?php if (isset($errors['general'])) : ?>
+                <div class="mb-6 bg-red-100 text-red-700 px-4 py-3 rounded-xl">
+                    <?= htmlspecialchars($errors['general']) ?>
+                    <?php if (empty($_SESSION['user']['user_id'])) : ?>
+                        <a href="login.php" class="underline font-semibold">Sign in</a>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (($_GET['report'] ?? '') === 'submitted') : ?>
+                <div class="mb-6 bg-green-100 text-green-700 px-4 py-3 rounded-xl">
+                    Report submitted successfully. Please wait for approval.
+                </div>
+            <?php endif; ?>
 
             <?php if (!empty($success)) : ?>
                 <div class="mb-6 bg-green-100 text-green-700 px-4 py-3 rounded-xl">
@@ -133,6 +115,7 @@ require_once __DIR__ . "/../layouts/header.php";
                         value="<?= htmlspecialchars($_POST['title'] ?? "") ?>"
                         placeholder="e.g Black Wallet"
                         required
+                        minlength="3"
                         maxlength="150"
                         class="w-full border border-gray-300 rounded-xl px-4 py-3">
 
@@ -157,16 +140,14 @@ require_once __DIR__ . "/../layouts/header.php";
                         class="w-full border border-gray-300 rounded-xl px-4 py-3">
                         <option value="">Select Category</option>
                         <?php
-                        $query = "SELECT * FROM CATEGORY ORDER BY categoryName ASC";
-                        $category_query = $pdo->query($query);
-                        while ($category = $category_query->fetch()) : ?>
+                        foreach ($categories as $category) : ?>
 
                             <option value="<?= htmlspecialchars((string) $category['id']) ?>"
                                 <?= (string) ($_POST['category'] ?? '') === (string) $category['id'] ? 'selected' : '' ?>>
                                 <?= ucfirst(htmlspecialchars($category['categoryName'])) ?>
                             </option>
 
-                        <?php endwhile; ?>
+                        <?php endforeach; ?>
                     </select>
 
                     <?php if (isset($errors['category'])) : ?>
@@ -187,6 +168,7 @@ require_once __DIR__ . "/../layouts/header.php";
                     <textarea
                         name="description"
                         rows="5"
+                        minlength="10"
                         required
                         class="w-full border border-gray-300 rounded-xl px-4 py-3"><?= htmlspecialchars($_POST['description'] ?? "") ?></textarea>
 
@@ -230,8 +212,8 @@ require_once __DIR__ . "/../layouts/header.php";
                     <input
                         type="date"
                         name="date"
-                        min="<?= htmlspecialchars($minimumReportDate) ?>"
-                        max="<?= htmlspecialchars($maximumReportDate) ?>"
+                        min="<?= htmlspecialchars($dateBounds['minimum']) ?>"
+                        max="<?= htmlspecialchars($dateBounds['maximum']) ?>"
                         value="<?= htmlspecialchars($_POST['date'] ?? "") ?>"
                         required
                         class="w-full border border-gray-300 rounded-xl px-4 py-3">
@@ -255,6 +237,9 @@ require_once __DIR__ . "/../layouts/header.php";
                         type="tel"
                         name="contact"
                         value="<?= htmlspecialchars($_POST['contact'] ?? "") ?>"
+                        pattern="[0-9]{10,15}"
+                        minlength="10"
+                        maxlength="15"
                         required
                         class="w-full border border-gray-300 rounded-xl px-4 py-3">
 
@@ -276,6 +261,7 @@ require_once __DIR__ . "/../layouts/header.php";
                     <input
                         type="file"
                         name="image"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
                         class="w-full border border-gray-300 rounded-xl px-4 py-3">
 
                     <?php if (isset($errors['image'])) : ?>
@@ -309,8 +295,16 @@ require_once __DIR__ . "/../layouts/header.php";
         const validateReportDate = (value, minimum, maximum) => {
             if (!value) return 'Please select a date.';
 
-            const parsed = new Date(`${value}T00:00:00`);
-            if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
+            const parts = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (!parts) return 'Please enter a valid date.';
+
+            const [, year, month, day] = parts;
+            const parsed = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+            if (
+                parsed.getUTCFullYear() !== Number(year) ||
+                parsed.getUTCMonth() !== Number(month) - 1 ||
+                parsed.getUTCDate() !== Number(day)
+            ) {
                 return 'Please enter a valid date.';
             }
             if (value < minimum || value > maximum) {
@@ -331,4 +325,4 @@ require_once __DIR__ . "/../layouts/header.php";
     })();
 </script>
 
-<?php require_once __DIR__ ."/../layouts/footer.php" ?>
+<?php require_once __DIR__ . "/../layouts/footer.php" ?>

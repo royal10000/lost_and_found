@@ -20,6 +20,7 @@ class Session
         session_regenerate_id(true);
 
         $_SESSION['user'] = [
+            'user_id'=>$user['id'],
             'username' => $user['username'],
             'email' => $user['email'],
         ];
