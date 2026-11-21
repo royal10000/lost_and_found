@@ -30,6 +30,10 @@ class ImageService
 
         // Image already exists
         if ($existingImage) {
+            $this->crud->query(
+                "UPDATE images SET image_count = image_count + 1 WHERE id = ?",
+                [(int) $existingImage['id']]
+            );
             return (int) $existingImage['id'];
         }
 
@@ -57,7 +61,8 @@ class ImageService
         // Save image information in database
         $this->crud->insert('images', [
             'filename' => $filename,
-            'sha256'   => $hash
+            'sha256'   => $hash,
+            'image_count' => 1,
         ]);
 
         return (int) $this->crud->lastInsertId();

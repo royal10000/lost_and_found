@@ -1,9 +1,71 @@
 <?php
 require_once __DIR__ . "/crud.php";
 require_once __DIR__ . "/../includes/imageService.php";
+require_once __DIR__ . "/../configs/configs.php";
 
 class Report extends CRUD
 {
+    /** Delete a report and release its reference to the shared image, if any. */
+    public function deleteReport(int $reportId, int $userId): bool
+    {
+        $filenameToRemove = null;
+
+        $this->conn->beginTransaction();
+        try {
+            $report = $this->query(
+                'SELECT image_id FROM reports WHERE id = ? AND user_id = ? FOR UPDATE',
+                [$reportId, $userId],
+                true
+            );
+
+            if (!$report) {
+                $this->conn->rollBack();
+                return false;
+            }
+
+            $imageId = $report['image_id'];
+            $this->delete('reports', $reportId);
+
+            if ($imageId !== null) {
+                $image = $this->query(
+                    'SELECT filename, image_count FROM images WHERE id = ? FOR UPDATE',
+                    [(int) $imageId],
+                    true
+                );
+
+                if ($image) {
+                    $remaining = max(0, (int) $image['image_count'] - 1);
+                    if ($remaining === 0) {
+                        $this->delete('images', (int) $imageId);
+                        $filenameToRemove = basename($image['filename']);
+                    } else {
+                        $this->query(
+                            'UPDATE images SET image_count = ? WHERE id = ?',
+                            [$remaining, (int) $imageId]
+                        );
+                    }
+                }
+            }
+
+            $this->conn->commit();
+        } catch (Throwable $exception) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            throw $exception;
+        }
+
+        // Remove the physical file only after the database transaction commits.
+        if ($filenameToRemove !== null) {
+            $path = IMAGE_UPLOAD_DIR . $filenameToRemove;
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
+
+        return true;
+    }
+
     public function getCategories(): array
     {
         return $this->query("SELECT * FROM CATEGORY ORDER BY categoryName ASC");
@@ -64,6 +126,7 @@ class Report extends CRUD
             return $errors;
         }
 
+        $this->conn->beginTransaction();
         try {
             $imageId = null;
             if (($imageFile['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
@@ -82,7 +145,11 @@ class Report extends CRUD
                 'image_id' => $imageId,
                 'status' => 'pending',
             ]);
+            $this->conn->commit();
         } catch (Throwable $exception) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
             return ['general' => 'Unable to submit your report. Please check the image and try again.'];
         }
 
