@@ -44,7 +44,7 @@ require_once __DIR__ . "/../layouts/header.php";
         <div class="p-8">
 
             <?php if (isset($errors['general'])) : ?>
-                <div class="mb-6 bg-red-100 text-red-700 px-4 py-3 rounded-xl">
+                <div role="alert" class="mb-6 bg-red-100 text-red-700 px-4 py-3 rounded-xl">
                     <?= htmlspecialchars($errors['general']) ?>
                     <?php if (empty($_SESSION['user']['user_id'])) : ?>
                         <a href="login.php" class="underline font-semibold">Sign in</a>
@@ -53,13 +53,13 @@ require_once __DIR__ . "/../layouts/header.php";
             <?php endif; ?>
 
             <?php if (($_GET['report'] ?? '') === 'submitted') : ?>
-                <div class="mb-6 bg-green-100 text-green-700 px-4 py-3 rounded-xl">
+                <div role="status" class="mb-6 bg-green-100 text-green-700 px-4 py-3 rounded-xl">
                     Report submitted successfully. Please wait for approval.
                 </div>
             <?php endif; ?>
 
             <?php if (!empty($success)) : ?>
-                <div class="mb-6 bg-green-100 text-green-700 px-4 py-3 rounded-xl">
+                <div role="status" class="mb-6 bg-green-100 text-green-700 px-4 py-3 rounded-xl">
                     <?= $success ?>
                 </div>
             <?php endif; ?>

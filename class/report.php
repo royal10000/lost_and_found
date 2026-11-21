@@ -5,6 +5,121 @@ require_once __DIR__ . "/../configs/configs.php";
 
 class Report extends CRUD
 {
+    public function searchPublicReports(
+        string $type = '',
+        string $search = '',
+        string $location = '',
+        int $page = 1,
+        int $limit = 9
+    ): array {
+        $type = in_array($type, ['lost', 'found'], true) ? $type : '';
+        $limit = max(1, min(50, $limit));
+        $conditions = ["reports.status = 'approved'"];
+        $params = [];
+
+        if ($type !== '') {
+            $conditions[] = 'reports.report_type = ?';
+            $params[] = $type;
+        }
+        if ($search !== '') {
+            $conditions[] = '(reports.title LIKE ? OR reports.description LIKE ? OR reports.location LIKE ?)';
+            $term = '%' . $search . '%';
+            array_push($params, $term, $term, $term);
+        }
+        if ($location !== '') {
+            $conditions[] = 'reports.location LIKE ?';
+            $params[] = '%' . $location . '%';
+        }
+
+        $where = implode(' AND ', $conditions);
+        $totalRow = $this->query(
+            'SELECT COUNT(*) AS total FROM reports WHERE ' . $where,
+            $params,
+            true
+        );
+        $totalItems = (int) ($totalRow['total'] ?? 0);
+        $totalPages = max(1, (int) ceil($totalItems / $limit));
+        $page = max(1, min($page, $totalPages));
+        $offset = ($page - 1) * $limit;
+
+        $items = $this->query(
+            'SELECT reports.*, category.categoryName, images.filename AS image
+             FROM reports
+             LEFT JOIN CATEGORY AS category ON reports.category_id = category.id
+             LEFT JOIN images ON reports.image_id = images.id
+             WHERE ' . $where . '
+             ORDER BY reports.created_at DESC
+             LIMIT ' . $limit . ' OFFSET ' . $offset,
+            $params
+        );
+
+        return [
+            'items' => $items,
+            'page' => $page,
+            'totalItems' => $totalItems,
+            'totalPages' => $totalPages,
+        ];
+    }
+
+    public function fetchReports(int $userId, int $page = 1, int $limit = 6): array
+    {
+        $limit = max(1, min(50, $limit));
+        $totalRow = $this->query(
+            'SELECT COUNT(*) AS total FROM reports WHERE user_id = ?',
+            [$userId],
+            true
+        );
+        $totalItems = (int) ($totalRow['total'] ?? 0);
+        $totalPages = max(1, (int) ceil($totalItems / $limit));
+        $page = max(1, min($page, $totalPages));
+        $offset = ($page - 1) * $limit;
+
+        $items = $this->query(
+            'SELECT reports.*, category.categoryName, images.filename AS image
+             FROM reports
+             LEFT JOIN CATEGORY AS category ON reports.category_id = category.id
+             LEFT JOIN images ON reports.image_id = images.id
+             WHERE reports.user_id = ?
+             ORDER BY reports.created_at DESC
+             LIMIT ' . $limit . ' OFFSET ' . $offset,
+            [$userId]
+        );
+
+        return [
+            'items' => $items,
+            'page' => $page,
+            'totalItems' => $totalItems,
+            'totalPages' => $totalPages,
+        ];
+    }
+
+    public function fetchReport(int $reportId, int $userId): ?array
+    {
+        return $this->query(
+            'SELECT reports.*, category.categoryName, images.filename AS image
+             FROM reports
+             LEFT JOIN CATEGORY AS category ON reports.category_id = category.id
+             LEFT JOIN images ON reports.image_id = images.id
+             WHERE reports.id = ? AND reports.user_id = ?
+             LIMIT 1',
+            [$reportId, $userId],
+            true
+        ) ?: null;
+    }
+
+    public function fetchPublicReport(int $reportId): ?array
+    {
+        return $this->query(
+            "SELECT reports.*, category.categoryName, images.filename AS image
+             FROM reports
+             LEFT JOIN CATEGORY AS category ON reports.category_id = category.id
+             LEFT JOIN images ON reports.image_id = images.id
+             WHERE reports.id = ? AND reports.status = 'approved'
+             LIMIT 1",
+            [$reportId],
+            true
+        ) ?: null;
+    }
     /** Delete a report and release its reference to the shared image, if any. */
     public function deleteReport(int $reportId, int $userId): bool
     {

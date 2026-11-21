@@ -1,4 +1,8 @@
-  <?php require_once __DIR__ . "/../layouts/header.php"; ?>
+  <?php
+  require_once __DIR__ . "/../class/report.php";
+  $homeReports = (new Report())->searchPublicReports('', '', '', 1, 6)['items'];
+  require_once __DIR__ . "/../layouts/header.php";
+  ?>
 
   <!-- ================= HERO ================= -->
   <section class="bg-black text-white py-16 sm:py-24">
@@ -26,9 +30,13 @@
                       Report Lost Item
 </a>
 
-                  <a href="items.php"
+                  <a href="lost_item.php"
                       class="px-6 py-4 border border-white rounded-2xl text-center hover:bg-white hover:text-black transition">
-                      Browse Items
+                      Browse Lost Items
+                  </a>
+                  <a href="found_item.php"
+                      class="px-6 py-4 border border-white/40 rounded-2xl text-center hover:bg-white hover:text-black transition">
+                      Browse Found Items
                   </a>
               </div>
           </div>
@@ -56,6 +64,15 @@
                       placeholder="Location"
                       value="<?= htmlspecialchars($_GET['location'] ?? '') ?>"
                       class="w-full p-4 rounded-xl bg-white/10 border border-white/20 outline-none text-white placeholder:text-gray-300" />
+
+                  <label class="block">
+                      <span class="sr-only">Item type</span>
+                      <select name="type" class="w-full p-4 rounded-xl bg-gray-900 border border-white/20 outline-none text-white">
+                          <option value="">Lost and found items</option>
+                          <option value="lost">Lost items</option>
+                          <option value="found">Found items</option>
+                      </select>
+                  </label>
 
                   <button
                       type="submit"
@@ -136,30 +153,18 @@
       <div class="max-w-7xl mx-auto px-6">
 
           <div class="flex items-center justify-between mb-10">
-              <h2 class="text-4xl font-bold text-black">Items</h2>
+              <h2 class="text-4xl font-bold text-black">Recent Reports</h2>
+              <a href="items.php" class="font-semibold text-gray-600 hover:text-black">Browse all →</a>
           </div>
 
           <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-              <?php
-
-                $query = "SELECT 
-                        id,
-                        title,
-                        location,
-                        report_type,
-                        image,
-                        created_at
-                      FROM reports
-                      WHERE status='approved'
-                      ORDER BY created_at DESC
-                      LIMIT 6";
-                $stmt = $pdo->prepare($query);
-                $stmt->execute();
-
-                while ($item = $stmt->fetch()):
-
-                ?>
+              <?php foreach ($homeReports as $item): ?>
+                  <?php
+                  $imageSrc = !empty($item['image'])
+                      ? 'uploads/images/' . rawurlencode(basename($item['image']))
+                      : 'assets/img/no-image.svg';
+                  ?>
 
                   <div class="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition">
 
@@ -167,7 +172,7 @@
                       <div class="h-48 overflow-hidden">
 
                           <img
-                              src="<?= htmlspecialchars(reportImageSrc($item['image'])) ?>"
+                              src="<?= htmlspecialchars($imageSrc, ENT_QUOTES, 'UTF-8') ?>"
                               alt="<?= htmlspecialchars($item['title']) ?>"
                               class="w-full h-full object-cover hover:scale-110 transition duration-500" />
 
@@ -198,7 +203,7 @@
 
                           <!-- Button -->
                           <a
-                              href="single.php?id=<?= $item['id'] ?>"
+                              href="item_detail.php?id=<?= (int) $item['id'] ?>"
                               class="block text-center w-full py-3 bg-black text-white rounded-2xl hover:opacity-90 transition">
 
                               View Details
@@ -209,7 +214,7 @@
 
                   </div>
 
-              <?php endwhile; ?>
+              <?php endforeach; ?>
 
           </div>
 

@@ -50,13 +50,13 @@ require_once __DIR__ . "/../layouts/header.php";
 
         <!-- General Errors -->
         <?php if (isset($errors['database'])): ?>
-            <div class="bg-red-100 text-red-600 p-3 rounded-xl mb-4">
+            <div role="alert" class="bg-red-100 text-red-600 p-3 rounded-xl mb-4">
                 <?= htmlspecialchars($errors['database']) ?>
             </div>
         <?php endif; ?>
 
         <?php if (isset($errors['general'])): ?>
-            <div class="bg-red-100 text-red-600 p-3 rounded-xl mb-4">
+            <div role="alert" class="bg-red-100 text-red-600 p-3 rounded-xl mb-4">
                 <?= htmlspecialchars($errors['general']) ?>
             </div>
         <?php endif; ?>

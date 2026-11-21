@@ -23,6 +23,7 @@ class Session
             'user_id'=>$user['id'],
             'username' => $user['username'],
             'email' => $user['email'],
+            'profile_image' => $user['profile_image'] ?? null,
         ];
     }
 
@@ -43,5 +44,9 @@ class Session
         // Destroy the session
         session_destroy();
         
+    }
+
+    public static function currentUser(){
+        return isset($_SESSION['user']) ? $_SESSION['user']['user_id'] :null;
     }
 }

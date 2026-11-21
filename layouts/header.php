@@ -4,6 +4,12 @@ $isLoggedIn = Session::isLoggedIn();
 $sessionUser = $_SESSION["user"] ?? [];
 $username = $sessionUser["username"] ?? "";
 $email = $sessionUser["email"] ?? "";
+$profileImage = $sessionUser["profile_image"] ?? "";
+$avatarFilename = basename((string) $profileImage);
+$avatarPath = __DIR__ . "/../public/uploads/profiles/" . $avatarFilename;
+$avatarSrc = $avatarFilename !== "" && is_file($avatarPath)
+    ? "uploads/profiles/" . rawurlencode($avatarFilename) . "?v=" . filemtime($avatarPath)
+    : "assets/img/default-avatar.svg";
 ?>
 
 <!doctype html>
@@ -62,11 +68,11 @@ $email = $sessionUser["email"] ?? "";
                 <nav class="hidden xl:flex items-center gap-8 font-medium">
                     <a href="index.php" class="hover:text-gray-500 transition"> Home </a>
 
-                    <a href="lost_page.php" class="hover:text-gray-500 transition">
+                    <a href="lost_item.php" class="hover:text-gray-500 transition">
                         Lost Items
                     </a>
 
-                    <a href="found.php" class="hover:text-gray-500 transition">
+                    <a href="found_item.php" class="hover:text-gray-500 transition">
                         Found Items
                     </a>
 
@@ -79,7 +85,7 @@ $email = $sessionUser["email"] ?? "";
                     <?php if ($isLoggedIn): ?>
                         <div class="relative group">
                             <button type="button" class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100 transition">
-                                <span class="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center font-semibold"><?= htmlspecialchars(strtoupper(substr($username, 0, 1)), ENT_QUOTES, 'UTF-8') ?></span>
+                                <img src="<?= htmlspecialchars($avatarSrc, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?>" class="w-10 h-10 rounded-full bg-gray-100 object-cover">
                                 <span class="text-left leading-tight">
                                     <span class="block text-sm font-semibold"><?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?></span>
                                     <span class="block text-xs text-gray-500"><?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?></span>
@@ -130,12 +136,12 @@ $email = $sessionUser["email"] ?? "";
                         Home
                     </a>
 
-                    <a href="lost_page.php"
+                    <a href="lost_item.php"
                         class="px-4 py-3 rounded-xl hover:bg-gray-100 transition">
                         Lost Items
                     </a>
 
-                    <a href="found.php"
+                    <a href="found_item.php"
                         class="px-4 py-3 rounded-xl hover:bg-gray-100 transition">
                         Found Items
                     </a>
@@ -176,7 +182,7 @@ $email = $sessionUser["email"] ?? "";
                         <div class="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-2xl mt-2">
 
                             <!-- Avatar -->
-                            <span class="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center font-semibold"><?= htmlspecialchars(strtoupper(substr($username, 0, 1)), ENT_QUOTES, 'UTF-8') ?></span>
+                            <img src="<?= htmlspecialchars($avatarSrc, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?>" class="w-11 h-11 rounded-full bg-gray-100 object-cover">
 
                             <!-- User Details -->
                             <div class="leading-tight overflow-hidden">
